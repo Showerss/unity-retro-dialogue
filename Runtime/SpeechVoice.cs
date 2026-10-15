@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 namespace Retro.Dialogue
@@ -28,6 +29,9 @@ namespace Retro.Dialogue
         [Tooltip("Colour of words wrapped in <em>...</em> in this speaker's lines.")]
         [SerializeField] private Color _emphasisColor = DialogueMarkup.DefaultEmphasisColor;
 
+        [Tooltip("Optional font for this speaker's name and lines. Leave empty to use the dialogue box's font.")]
+        [SerializeField] private TMP_FontAsset _font;
+
         [Header("Sound")]
         [Tooltip("Alphabet = Animal Crossing (a clip per letter). VowelsOnly = only vowels speak. SingleBlip = Undertale (one blip on every letter).")]
         [SerializeField] private SpeechMode _mode = SpeechMode.Alphabet;
@@ -44,7 +48,7 @@ namespace Retro.Dialogue
 
         [Header("Pitch")]
         [Tooltip("1 = the clip as recorded. Lower is deeper and darker (and slightly slower); Animal Crossing villagers sit well above 1.")]
-        [Range(0.25f, 3f)]
+        [Range(0.1f, 3f)]
         [SerializeField] private float _basePitch = 0.8f;
 
         [Tooltip("Random pitch wobble added to each letter, so repeated letters don't sound mechanical.")]
@@ -54,6 +58,15 @@ namespace Retro.Dialogue
         [Tooltip("Pitch added to the last word before a '?', so questions rise.")]
         [Range(0f, 1f)]
         [SerializeField] private float _questionRise = 0.1f;
+
+        [Header("Growl")]
+        [Tooltip("Distortion on each letter. 0 = clean; around 0.5+ turns a deep voice into a gravelly growl.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float _distortion;
+
+        [Tooltip("Cuts frequencies above this (Hz). 22000 = no filtering; around 1000 muffles the voice into a low rumble.")]
+        [Range(200f, 22000f)]
+        [SerializeField] private float _lowPassCutoff = 22000f;
 
         [Header("Pacing (seconds after each character)")]
         [Tooltip("After a letter, digit or other symbol. Undertale runs about 0.033.")]
@@ -76,11 +89,14 @@ namespace Retro.Dialogue
 
         public Color TextColor => _textColor;
         public Color EmphasisColor => _emphasisColor;
+        public TMP_FontAsset Font => _font;
         public SpeechMode Mode => _mode;
         public float Volume => _volume;
         public float BasePitch => _basePitch;
         public float PitchJitter => _pitchJitter;
         public float QuestionRise => _questionRise;
+        public float Distortion => _distortion;
+        public float LowPassCutoff => _lowPassCutoff;
         public float LetterDelay => _letterDelay;
         public float SpaceDelay => _spaceDelay;
         public float CommaDelay => _commaDelay;

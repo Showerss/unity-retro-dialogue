@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -44,12 +45,19 @@ namespace Retro.Dialogue
         private int _openedFrame;
         private IDialogueHost _host;
         private InputAction _advanceAction;
+        private TMP_FontAsset _defaultSpeakerFont;
+        private TMP_FontAsset _defaultLineFont;
 
         public bool IsOpen => _dialogue != null;
+
+        /// <summary>Raised after the box closes, once the player has been unlocked.</summary>
+        public event Action Closed;
 
         private void Awake()
         {
             _panel.SetActive(false);
+            _defaultSpeakerFont = _speakerText.font;
+            _defaultLineFont = _typewriter.Text.font;
         }
 
         private void OnEnable()
@@ -85,6 +93,10 @@ namespace Retro.Dialogue
             Color speakerColor = dialogue.Voice != null ? dialogue.Voice.TextColor : _defaultTextColor;
             if (_tintSpeakerName) _speakerText.color = speakerColor;
             if (_tintLine) _typewriter.Text.color = speakerColor;
+
+            TMP_FontAsset voiceFont = dialogue.Voice != null ? dialogue.Voice.Font : null;
+            _speakerText.font = voiceFont != null ? voiceFont : _defaultSpeakerFont;
+            _typewriter.Text.font = voiceFont != null ? voiceFont : _defaultLineFont;
 
             _speakerText.text = dialogue.SpeakerName;
             _panel.SetActive(true);
@@ -136,17 +148,17 @@ namespace Retro.Dialogue
         }
 
         // The closing press is still being dispatched; unlocking now would let it reopen the conversation.
-        private static IEnumerator RestoreNextFrame(IDialogueHost host)
+        private IEnumerator RestoreNextFrame(IDialogueHost host)
         {
             yield return null;
             Restore(host);
         }
 
-        private static void Restore(IDialogueHost host)
+        private void Restore(IDialogueHost host)
         {
             // A destroyed host component still compares non-null as an interface.
-            if (host is Object unityObject && unityObject == null) return;
-            host.SetPlayerLocked(false);
+            if (!(host is UnityEngine.Object unityObject && unityObject == null)) host.SetPlayerLocked(false);
+            Closed?.Invoke();
         }
     }
 }
