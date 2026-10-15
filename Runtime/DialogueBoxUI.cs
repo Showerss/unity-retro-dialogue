@@ -30,6 +30,15 @@ namespace Retro.Dialogue
         [Tooltip("Hint after the key on the last line.")]
         [SerializeField] private string _closeLabel = "Close";
 
+        [Tooltip("Colour the speaker's name with their voice's text colour.")]
+        [SerializeField] private bool _tintSpeakerName = true;
+
+        [Tooltip("Colour the line with the speaker's voice text colour.")]
+        [SerializeField] private bool _tintLine = true;
+
+        [Tooltip("Text colour for dialogue whose speaker has no voice.")]
+        [SerializeField] private Color _defaultTextColor = Color.white;
+
         private DialogueDefinition _dialogue;
         private int _lineIndex;
         private int _openedFrame;
@@ -72,6 +81,10 @@ namespace Retro.Dialogue
 
             _advanceAction.performed += HandleAdvance;
             _host.SetPlayerLocked(true);
+
+            Color speakerColor = dialogue.Voice != null ? dialogue.Voice.TextColor : _defaultTextColor;
+            if (_tintSpeakerName) _speakerText.color = speakerColor;
+            if (_tintLine) _typewriter.Text.color = speakerColor;
 
             _speakerText.text = dialogue.SpeakerName;
             _panel.SetActive(true);

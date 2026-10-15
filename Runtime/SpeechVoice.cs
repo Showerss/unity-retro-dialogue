@@ -21,6 +21,13 @@ namespace Retro.Dialogue
     {
         public const int LetterCount = 26;
 
+        [Header("Text")]
+        [Tooltip("Colour of this speaker's name and lines, so each character reads at a glance (as in Mouthwashing).")]
+        [SerializeField] private Color _textColor = Color.white;
+
+        [Tooltip("Colour of words wrapped in <em>...</em> in this speaker's lines.")]
+        [SerializeField] private Color _emphasisColor = DialogueMarkup.DefaultEmphasisColor;
+
         [Header("Sound")]
         [Tooltip("Alphabet = Animal Crossing (a clip per letter). VowelsOnly = only vowels speak. SingleBlip = Undertale (one blip on every letter).")]
         [SerializeField] private SpeechMode _mode = SpeechMode.Alphabet;
@@ -67,6 +74,8 @@ namespace Retro.Dialogue
 
         [System.NonSerialized] private bool _warnedMissingClip;
 
+        public Color TextColor => _textColor;
+        public Color EmphasisColor => _emphasisColor;
         public SpeechMode Mode => _mode;
         public float Volume => _volume;
         public float BasePitch => _basePitch;

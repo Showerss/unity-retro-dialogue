@@ -7,6 +7,7 @@ namespace Retro.Dialogue
     /// <summary>
     /// Reveals a TMP text one character at a time, pausing longer after commas and sentence ends,
     /// and speaks each character through a <see cref="SpeechVoicePlayer"/>. Rich-text tags are never typed or voiced.
+    /// Lines may use the emphasis tags described in <see cref="DialogueMarkup"/>.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class Typewriter : MonoBehaviour
@@ -35,11 +36,15 @@ namespace Retro.Dialogue
 
         public bool IsTyping { get; private set; }
 
+        /// <summary>The text being typed into.</summary>
+        public TMP_Text Text => _text;
+
         /// <summary>Starts typing <paramref name="text"/> with <paramref name="voice"/> (or the default voice if null).</summary>
         public void Play(string text, SpeechVoice voice)
         {
             _voice = voice != null ? voice : _defaultVoice;
-            _text.text = text;
+            Color emphasis = _voice != null ? _voice.EmphasisColor : DialogueMarkup.DefaultEmphasisColor;
+            _text.text = DialogueMarkup.ToRichText(text, emphasis);
             _text.maxVisibleCharacters = 0;
             _text.ForceMeshUpdate(ignoreActiveState: true);
 
