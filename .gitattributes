@@ -1,0 +1,38 @@
+﻿# Unity .gitattributes for a UPM package repository.
+# Adapted from https://github.com/gitattributes/gitattributes (MIT).
+#
+# Two jobs here:
+#   1. Force LF on Unity's text formats. Unity writes LF; without this, Windows
+#      checkouts rewrite them to CRLF and every .meta shows as modified.
+#   2. Route binary assets through Git LFS so the package stays cloneable.
+
+# Macros - these only work in a top-level .gitattributes, which this is,
+# because the repo root and the package root are the same folder.
+[attr]lfs               filter=lfs diff=lfs merge=lfs -text
+[attr]unity-json        eol=lf linguist-language=json
+[attr]unity-yaml        merge=unityyamlmerge eol=lf linguist-language=yaml
+
+# ── Source ──
+*.cs                    text diff=csharp
+*.cginc                 text
+*.compute               text linguist-language=hlsl
+*.hlsl                  text linguist-language=hlsl
+*.raytrace              text linguist-language=hlsl
+*.shader                text
+
+# ── Unity JSON ──
+*.asmdef                unity-json
+*.asmref                unity-json
+*.inputactions          unity-json
+*.shadergraph           unity-json
+*.shadersubgraph        unity-json
+
+# ── Unity YAML ──
+*.mat                   unity-yaml
+*.prefab                unity-yaml
+*.unity                 unity-yaml
+
+# ── Markdown & Docs ──
+*.md                    text
+*.txt                   text
+package.json            unity-json

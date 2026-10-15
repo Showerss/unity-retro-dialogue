@@ -1,0 +1,60 @@
+﻿# .gitignore for a Unity UPM package repository.
+#
+# This repo's root IS the package root (package.json sits beside this file).
+# It is consumed either by Git URL in Unity's Package Manager, or by being
+# cloned/embedded into a project's Packages/ folder.
+
+# ── OS cruft ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE / editor ──
+.idea/
+.vs/
+.vscode/
+*.DotSettings.user
+*.user
+*.userprefs
+
+# ── Auto-generated solution & project files ──
+# Unity regenerates these; they belong to the host project, not the package.
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# ── Unity host-project folders ──
+# These should never appear inside a package, but guard against a stray
+# Unity launch or a mis-rooted tool creating them here.
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+*.log
+mono_crash.*
+sysinfo.txt
+
+# ── Build artifacts ──
+*.unitypackage
+*.unitypackage.meta
+*.apk
+*.aab
+
+# ── IMPORTANT ──
+# Unity .meta files MUST be committed. Every asset needs its .meta or the
+# package breaks on install (broken references, reshuffled GUIDs).
+# This re-admits any .meta a rule above may have swept up.
+!*.meta

@@ -1,0 +1,26 @@
+{
+    "name": "Retro.Dialogue.Adapters.Fpc",
+    "rootNamespace": "Retro.Dialogue.Adapters",
+    "references": [
+        "Retro.Dialogue",
+        "FirstPersonController",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "RETRO_DIALOGUE_FPC"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.firstperson.controller",
+            "expression": "",
+            "define": "RETRO_DIALOGUE_FPC"
+        }
+    ],
+    "noEngineReferences": false
+}

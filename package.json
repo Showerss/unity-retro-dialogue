@@ -1,0 +1,26 @@
+{
+  "name": "com.retro.dialogue",
+  "version": "0.1.0",
+  "displayName": "Retro Dialogue",
+  "description": "Typewriter dialogue box with Animal Crossing / Undertale style mumble speech: per-letter voice clips (Animalese alphabet, vowels-only, or a single Undertale blip), per-voice pitch, and punctuation-aware pauses. Optional adapter lights up automatically for the First Person Controller package.",
+  "unity": "6000.0",
+  "license": "MIT",
+  "keywords": [
+    "dialogue",
+    "typewriter",
+    "animalese",
+    "mumble",
+    "retro"
+  ],
+  "author": {
+    "name": "Phillip Banky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Showerss/unity-retro-dialogue.git"
+  },
+  "dependencies": {
+    "com.unity.inputsystem": "1.19.0",
+    "com.unity.ugui": "2.0.0"
+  }
+}
