@@ -7,7 +7,7 @@ namespace Retro.Dialogue
 {
     /// <summary>
     /// DOS-style dialogue box. Lines type out with the speaker's mumble voice. While it is open the player is locked;
-    /// the advance input first finishes the typing, then shows the next line, and closes the box after the last one.
+    /// pressing advance mid-line speeds up the typing; once the line is done it shows the next line, and closes the box after the last one.
     /// </summary>
     [DisallowMultipleComponent]
     public sealed class DialogueBoxUI : MonoBehaviour
@@ -85,7 +85,7 @@ namespace Retro.Dialogue
 
             if (_typewriter.IsTyping)
             {
-                _typewriter.Complete();
+                _typewriter.SpeedUp();
                 return;
             }
 

@@ -9,7 +9,7 @@ This repo's root is the package root.
 - **Local (editable):** add the following to `Packages/manifest.json`:
   `"com.retro.dialogue": "file:../../unity-retro-dialogue"` (path relative to `Packages/`).
 - **Git URL:** Package Manager > + > *Add package from git URL* >
-  `https://github.com/Showerss/unity-retro-dialogue.git#v0.1.0`
+  `https://github.com/Showerss/unity-retro-dialogue.git#v0.1.1`
 
 Requires Unity 6000.0+, Input System, and uGUI (TextMeshPro).
 
@@ -26,6 +26,8 @@ Shared settings on each `SpeechVoice`:
 - **Pitch:** base pitch (below 1 is darker), random jitter per letter, and a rise on the last word before a `?`.
 - **Pacing:** the delay after each character is set per voice. Defaults are letter 0.1s, space 0.1s, `, ; : —` 0.3s, and `. ! ?` 0.5s. Punctuation pauses only fire where they end a phrase, so `3.5`, `...` and `?!` run on until the last mark.
 - **Cut-off:** each new letter cuts off the previous clip, which keeps fast text crisp.
+
+Pressing advance while a line is still typing speeds up the rest of it (4x by default; set **Speed Up Multiplier** on the `Typewriter`). It never skips to the end. Once the line finishes, the next press moves on.
 
 Rich-text tags (`<b>`, `<color>`) are never typed or voiced.
 

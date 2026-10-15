@@ -14,7 +14,7 @@ namespace Retro.Dialogue
         [Tooltip("How this character mumbles and how fast their text types. Empty = the dialogue box's default voice.")]
         [SerializeField] private SpeechVoice _voice;
 
-        [Tooltip("Lines shown one at a time. Interact finishes the typing, then advances; the box closes after the last line.")]
+        [Tooltip("Lines shown one at a time. Interact speeds up a line that is still typing, then advances; the box closes after the last line.")]
         [TextArea(2, 5)]
         [SerializeField] private string[] _lines = new string[0];
 

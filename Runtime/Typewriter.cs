@@ -20,10 +20,15 @@ namespace Retro.Dialogue
         [Tooltip("Voice (sound and pacing) for lines whose dialogue has none. If this is empty too, lines appear instantly.")]
         [SerializeField] private SpeechVoice _defaultVoice;
 
+        [Tooltip("How many times faster the rest of the line types (pauses included) after the player presses advance mid-line.")]
+        [Min(1f)]
+        [SerializeField] private float _speedUpMultiplier = 4f;
+
         private SpeechVoice _voice;
         private int _visibleCount;
         private int _totalCount;
         private float _timer;
+        private float _speed = 1f;
 
         /// <summary>Raised when the whole line is visible, whether it typed out or was completed early.</summary>
         public event Action Finished;
@@ -41,9 +46,16 @@ namespace Retro.Dialogue
             _totalCount = _text.textInfo.characterCount;
             _visibleCount = 0;
             _timer = 0f;
+            _speed = 1f;
             IsTyping = true;
 
             if (_voice == null || _totalCount == 0) Complete();
+        }
+
+        /// <summary>Types the rest of the line faster. Every letter is still typed and voiced.</summary>
+        public void SpeedUp()
+        {
+            if (IsTyping) _speed = _speedUpMultiplier;
         }
 
         /// <summary>Shows the rest of the line at once.</summary>
@@ -67,7 +79,7 @@ namespace Retro.Dialogue
         {
             if (!IsTyping) return;
 
-            _timer -= Time.deltaTime;
+            _timer -= Time.deltaTime * _speed;
             while (IsTyping && _timer <= 0f) RevealNext();
         }
 
