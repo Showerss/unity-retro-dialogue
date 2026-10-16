@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.0] - 2026-10-16
+### Added
+- `WorldBoundsDialogueWarning` (FirstPersonController adapter): shows a line on the black screen after the controller's `WorldBoundsWarden` returns the player to the path.
+
 ## [0.2.0] - 2026-10-14
 ### Added
 - Per-speaker text colour on `SpeechVoice`. `DialogueBoxUI` tints the speaker name and line with it (each can be turned off), as Mouthwashing colour-codes each character.
