@@ -18,12 +18,21 @@ namespace Retro.Dialogue
         [Tooltip("Speaks each character. Optional: without it the text types silently.")]
         [SerializeField] private SpeechVoicePlayer _voicePlayer;
 
-        [Tooltip("Voice (sound and pacing) for lines whose dialogue has none. If this is empty too, lines appear instantly.")]
+        [Tooltip("Voice (sound and pacing) for lines whose dialogue has none. Without a voice, fallback pacing types silently.")]
         [SerializeField] private SpeechVoice _defaultVoice;
 
         [Tooltip("How many times faster the rest of the line types (pauses included) after the player presses advance mid-line.")]
         [Min(1f)]
         [SerializeField] private float _speedUpMultiplier = 4f;
+
+        [Header("Silent dialogue pacing (seconds)")]
+        [Min(0.001f)] [SerializeField] private float _letterDelay = 0.04f;
+        [Min(0f)] [SerializeField] private float _spaceDelay = 0.02f;
+        [Min(0f)] [SerializeField] private float _commaDelay = 0.18f;
+        [Min(0f)] [SerializeField] private float _sentenceEndDelay = 0.4f;
+
+        [Tooltip("Minimum pause after an ellipsis, with or without a voice.")]
+        [Min(0f)] [SerializeField] private float _ellipsisDelay = 0.6f;
 
         private SpeechVoice _voice;
         private int _visibleCount;
@@ -42,7 +51,17 @@ namespace Retro.Dialogue
         /// <summary>Starts typing <paramref name="text"/> with <paramref name="voice"/> (or the default voice if null).</summary>
         public void Play(string text, SpeechVoice voice)
         {
+            Play(text, voice, DialogueMood.Neutral);
+        }
+
+        public void Play(string text, SpeechVoice voice, DialogueMood mood)
+        {
+            Stop();
             _voice = voice != null ? voice : _defaultVoice;
+            var effects = _text.GetComponent<DialogueTextEffects>();
+            if (effects == null && (mood != DialogueMood.Neutral || DialogueMarkup.HasAnimatedText(text)))
+                effects = _text.gameObject.AddComponent<DialogueTextEffects>();
+            if (effects != null) effects.Mood = mood;
             Color emphasis = _voice != null ? _voice.EmphasisColor : DialogueMarkup.DefaultEmphasisColor;
             _text.text = DialogueMarkup.ToRichText(text, emphasis);
             _text.maxVisibleCharacters = 0;
@@ -54,7 +73,7 @@ namespace Retro.Dialogue
             _speed = 1f;
             IsTyping = true;
 
-            if (_voice == null || _totalCount == 0) Complete();
+            if (_totalCount == 0) Complete();
         }
 
         /// <summary>Types the rest of the line faster. Every letter is still typed and voiced.</summary>
@@ -82,9 +101,14 @@ namespace Retro.Dialogue
 
         private void Update()
         {
+            Tick(Time.unscaledDeltaTime);
+        }
+
+        private void Tick(float deltaTime)
+        {
             if (!IsTyping) return;
 
-            _timer -= Time.deltaTime * _speed;
+            _timer -= deltaTime * _speed;
             while (IsTyping && _timer <= 0f) RevealNext();
         }
 
@@ -109,36 +133,46 @@ namespace Retro.Dialogue
 
         private float DelayAfter(int index, char c)
         {
-            if (char.IsWhiteSpace(c)) return _voice.SpaceDelay;
+            float letter = Mathf.Max(0.001f, _voice != null ? _voice.LetterDelay : _letterDelay);
+            float comma = Mathf.Max(letter, _voice != null ? _voice.CommaDelay : _commaDelay);
+            float sentence = Mathf.Max(comma, _voice != null ? _voice.SentenceEndDelay : _sentenceEndDelay);
+            if (char.IsWhiteSpace(c)) return Mathf.Max(0f, _voice != null ? _voice.SpaceDelay : _spaceDelay);
 
-            // Punctuation only pauses where it ends a phrase, so "3.5", "..." and "?!" run on until their last mark.
-            bool endsPhrase = EndsPhrase(index + 1);
+            // Consume punctuation clusters before waiting, even when no space follows ("Wait!Really?").
+            if (index + 1 < _totalCount && IsPunctuation(_text.textInfo.characterInfo[index + 1].character)
+                && IsPunctuation(c)) return letter;
+            // Decimal points and thousands separators are not phrase boundaries.
+            if ((c == '.' || c == ',') && index > 0 && index + 1 < _totalCount
+                && char.IsDigit(_text.textInfo.characterInfo[index - 1].character)
+                && char.IsDigit(_text.textInfo.characterInfo[index + 1].character)) return letter;
+
+            // Mixed punctuation and ellipses pause once, on the last mark.
             switch (c)
             {
                 case '.':
+                    return index > 0 && _text.textInfo.characterInfo[index - 1].character == '.'
+                        ? Mathf.Max(sentence, _ellipsisDelay) : sentence;
+                case '…':
+                    return Mathf.Max(sentence, _ellipsisDelay);
                 case '!':
                 case '?':
-                    return endsPhrase ? _voice.SentenceEndDelay : _voice.LetterDelay;
+                    return sentence;
                 case ',':
+                    return comma;
                 case ';':
                 case ':':
                 case '—': // em dash
-                    return endsPhrase ? _voice.CommaDelay : _voice.LetterDelay;
+                case '–':
+                    return Mathf.Lerp(comma, sentence, 0.5f);
                 default:
-                    return _voice.LetterDelay;
+                    return letter;
             }
         }
 
-        private bool EndsPhrase(int nextIndex)
+        private static bool IsPunctuation(char c)
         {
-            if (nextIndex >= _totalCount) return true;
-            char next = _text.textInfo.characterInfo[nextIndex].character;
-            return char.IsWhiteSpace(next) || IsClosingMark(next);
-        }
-
-        private static bool IsClosingMark(char c)
-        {
-            return c == '"' || c == '\'' || c == ')' || c == '”' || c == '’';
+            return c == '.' || c == ',' || c == '!' || c == '?' || c == '…'
+                || c == ';' || c == ':' || c == '—' || c == '–';
         }
 
         // True when the word holding this letter runs straight into a '?'.

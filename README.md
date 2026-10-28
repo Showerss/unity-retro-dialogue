@@ -24,7 +24,8 @@ Requires Unity 6000.0+, Input System, and uGUI (TextMeshPro).
 Shared settings on each `SpeechVoice`:
 
 - **Pitch:** base pitch (below 1 is darker), random jitter per letter, and a rise on the last word before a `?`.
-- **Pacing:** the delay after each character is set per voice. Defaults are letter 0.1s, space 0.1s, `, ; : —` 0.3s, and `. ! ?` 0.5s. Punctuation pauses only fire where they end a phrase, so `3.5`, `...` and `?!` run on until the last mark.
+- **Pacing:** each voice sets letter, space, comma and sentence delays. Semicolons, colons and dashes pause halfway between comma and sentence delays. Ellipses pause for at least 0.6 seconds (adjustable on `Typewriter`). Punctuation clusters pause once, on the last mark; decimal points and numeric separators (`3.5`, `1,000`) keep normal letter timing. Pauses work even without a following space.
+- **Silent dialogue:** when neither the dialogue nor the typewriter has a voice, text still types at 0.04 seconds per letter, with 0.02s spaces, 0.18s commas and 0.4s sentence pauses. Adjust these fallback settings on `Typewriter`. Text and mood animation use unscaled time so a dialogue input lock or paused game clock does not stall them.
 - **Cut-off:** each new letter cuts off the previous clip, which keeps fast text crisp.
 
 Pressing advance while a line is still typing speeds up the rest of it (4x by default; set **Speed Up Multiplier** on the `Typewriter`). It never skips to the end. Once the line finishes, the next press moves on.
@@ -40,8 +41,17 @@ Each `SpeechVoice` has a **Text Colour** (the speaker's name and lines) and an *
 | `<em>word</em>` | Speaker's emphasis colour |
 | `<shake>word</shake>` | Letters tremble (needs `DialogueTextEffects` on the body text) |
 | `<wave>word</wave>` | Letters bob in a ripple (needs `DialogueTextEffects`) |
+| `<angry>word</angry>` | Strong, rapid shaking |
+| `<happy>word</happy>` | Springy upward bounces |
+| `<embarrassed>word</embarrassed>` | Small nervous tremble and a soft pink blush |
 
-Tags can wrap each other (`<em><shake>no</shake></em>`), but shake and wave can't be nested inside one another. Standard TextMeshPro tags (`<b>`, `<i>`, `<size=120%>`) work too.
+Set **Mood** on a `DialogueDefinition` to animate the whole conversation, or wrap individual phrases in mood tags. Text effects are added to the body automatically when a typewriter encounters a mood or animation tag. Both the first-person and top-down dialogue hosts use this same presentation code.
+
+For example: `<happy>You're here!</happy> I, um... <embarrassed>saved you a seat.</embarrassed>`
+
+Another line: `<angry>Don't touch that!</angry> It belongs to me.`
+
+Tags can wrap emphasis (`<em><angry>no</angry></em>`), but animation/mood tags must not nest inside one another or TMP link tags. Standard TextMeshPro tags (`<b>`, `<i>`, `<size=120%>`) work too. Inline mood tags override the conversation mood only for their enclosed characters. Existing dialogue stays neutral until a mood is authored; moods are explicit rather than guessed from wording.
 
 ## Setup
 

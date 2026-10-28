@@ -3,15 +3,26 @@ using UnityEngine;
 
 namespace Retro.Dialogue
 {
+    public enum DialogueMood { Neutral, Angry, Happy, Embarrassed }
+
     /// <summary>
-    /// Animates the <c>&lt;shake&gt;</c> and <c>&lt;wave&gt;</c> words of a TMP text (see <see cref="DialogueMarkup"/>).
+    /// Animates mood, <c>&lt;shake&gt;</c> and <c>&lt;wave&gt;</c> spans of a TMP text (see <see cref="DialogueMarkup"/>).
     /// Put it next to the text it animates. It works alongside <see cref="Typewriter"/>: letters only move once they're revealed.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(TMP_Text))]
     public sealed class DialogueTextEffects : MonoBehaviour
     {
-        private enum Effect { None, Shake, Wave }
+        private enum Effect { None, Shake, Wave, Angry, Happy, Embarrassed }
+
+        [Header("Mood")]
+        [SerializeField] private DialogueMood _mood;
+        [Range(0f, 0.3f)] [SerializeField] private float _angryAmount = 0.075f;
+        [Range(0f, 0.5f)] [SerializeField] private float _happyHeight = 0.14f;
+        [Range(0f, 0.15f)] [SerializeField] private float _embarrassedAmount = 0.018f;
+        [SerializeField] private Color _blushColor = new Color(1f, 0.65f, 0.75f);
+
+        public DialogueMood Mood { get => _mood; set => _mood = value; }
 
         [Header("Shake")]
         [Tooltip("How far letters tremble, as a fraction of the font size.")]
@@ -49,50 +60,84 @@ namespace Retro.Dialogue
         private void OnDisable()
         {
             _cachedText = null;
+            if (_text != null) _text.ForceMeshUpdate();
         }
 
         private void LateUpdate()
         {
-            // Nothing to animate unless the current line has shake or wave words.
+            // Animate only lines with a conversation mood or animated spans.
             if (!ReferenceEquals(_text.text, _cachedText)) CacheLinks();
-            if (_linkEffects.Length == 0) return;
+            if (_linkEffects.Length == 0 && _mood == DialogueMood.Neutral) return;
 
             // Rebuild the mesh from scratch so offsets don't accumulate, then displace the animated letters.
             _text.ForceMeshUpdate();
             TMP_TextInfo info = _text.textInfo;
             int visible = Mathf.Min(_text.maxVisibleCharacters, info.characterCount);
-            float size = _text.fontSize;
-            float time = Time.time;
+            float time = Time.unscaledTime;
             int shakeTick = Mathf.FloorToInt(time * _shakeRate);
             bool changed = false;
 
-            for (int l = 0; l < info.linkCount && l < _linkEffects.Length; l++)
+            for (int c = 0; c < visible; c++)
             {
-                Effect effect = _linkEffects[l];
-                if (effect == Effect.None) continue;
-
-                TMP_LinkInfo link = info.linkInfo[l];
-                int end = Mathf.Min(link.linkTextfirstCharacterIndex + link.linkTextLength, visible);
-                for (int c = link.linkTextfirstCharacterIndex; c < end; c++)
+                Effect effect = _mood == DialogueMood.Angry ? Effect.Angry
+                    : _mood == DialogueMood.Happy ? Effect.Happy
+                    : _mood == DialogueMood.Embarrassed ? Effect.Embarrassed : Effect.None;
+                for (int l = 0; l < info.linkCount && l < _linkEffects.Length; l++)
                 {
-                    TMP_CharacterInfo character = info.characterInfo[c];
-                    if (!character.isVisible) continue;
-
-                    Vector3 offset = effect == Effect.Shake
-                        ? new Vector3(Noise(c * 2, shakeTick), Noise(c * 2 + 1, shakeTick), 0f) * (_shakeAmount * size)
-                        : new Vector3(0f, Mathf.Sin(time * _waveSpeed - c * _waveSpacing) * _waveHeight * size, 0f);
-
-                    Vector3[] vertices = info.meshInfo[character.materialReferenceIndex].vertices;
-                    int v = character.vertexIndex;
-                    vertices[v] += offset;
-                    vertices[v + 1] += offset;
-                    vertices[v + 2] += offset;
-                    vertices[v + 3] += offset;
-                    changed = true;
+                    TMP_LinkInfo link = info.linkInfo[l];
+                    if (_linkEffects[l] != Effect.None && c >= link.linkTextfirstCharacterIndex
+                        && c < link.linkTextfirstCharacterIndex + link.linkTextLength)
+                    {
+                        effect = _linkEffects[l];
+                        break;
+                    }
                 }
+                if (effect == Effect.None) continue;
+                TMP_CharacterInfo character = info.characterInfo[c];
+                if (!character.isVisible) continue;
+                float size = character.pointSize;
+                Vector3 offset;
+                switch (effect)
+                {
+                    case Effect.Angry:
+                        offset = new Vector3(Noise(c * 2, shakeTick), Noise(c * 2 + 1, shakeTick), 0f) * (_angryAmount * size);
+                        break;
+                    case Effect.Happy:
+                        offset = new Vector3(0f, Mathf.Max(0f, Mathf.Sin(time * 9f - c * 0.65f)) * _happyHeight * size, 0f);
+                        break;
+                    case Effect.Embarrassed:
+                        offset = new Vector3(Mathf.Sin(time * 14f + c * 1.7f), Mathf.Sin(time * 3f - c * 0.5f) * 0.4f, 0f) * (_embarrassedAmount * size);
+                        break;
+                    case Effect.Shake:
+                        offset = new Vector3(Noise(c * 2, shakeTick), Noise(c * 2 + 1, shakeTick), 0f) * (_shakeAmount * size);
+                        break;
+                    default:
+                        offset = new Vector3(0f, Mathf.Sin(time * _waveSpeed - c * _waveSpacing) * _waveHeight * size, 0f);
+                        break;
+                }
+
+                Vector3[] vertices = info.meshInfo[character.materialReferenceIndex].vertices;
+                int v = character.vertexIndex;
+                vertices[v] += offset;
+                vertices[v + 1] += offset;
+                vertices[v + 2] += offset;
+                vertices[v + 3] += offset;
+                if (effect == Effect.Embarrassed)
+                {
+                    Color32[] colors = info.meshInfo[character.materialReferenceIndex].colors32;
+                    float blush = 0.3f + Mathf.Sin(time * 2f) * 0.1f;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        Color original = colors[v + i];
+                        Color tinted = Color.Lerp(original, _blushColor, blush);
+                        tinted.a = original.a;
+                        colors[v + i] = tinted;
+                    }
+                }
+                changed = true;
             }
 
-            if (changed) _text.UpdateVertexData(TMP_VertexDataUpdateFlags.Vertices);
+            if (changed) _text.UpdateVertexData(TMP_VertexDataUpdateFlags.Vertices | TMP_VertexDataUpdateFlags.Colors32);
         }
 
         // Runs once per line, not per frame.
@@ -109,6 +154,9 @@ namespace Retro.Dialogue
                 string id = info.linkInfo[l].GetLinkID();
                 effects[l] = id == DialogueMarkup.ShakeLinkId ? Effect.Shake
                     : id == DialogueMarkup.WaveLinkId ? Effect.Wave
+                    : id == DialogueMarkup.AngryLinkId ? Effect.Angry
+                    : id == DialogueMarkup.HappyLinkId ? Effect.Happy
+                    : id == DialogueMarkup.EmbarrassedLinkId ? Effect.Embarrassed
                     : Effect.None;
                 any |= effects[l] != Effect.None;
             }

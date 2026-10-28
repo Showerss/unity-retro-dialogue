@@ -122,7 +122,7 @@ namespace Retro.Dialogue
         private void ShowLine()
         {
             _continueText.text = string.Empty;
-            _typewriter.Play(_dialogue.GetLine(_lineIndex), _dialogue.Voice);
+            _typewriter.Play(_dialogue.GetLine(_lineIndex), _dialogue.Voice, _dialogue.Mood);
         }
 
         private void HandleLineFinished()

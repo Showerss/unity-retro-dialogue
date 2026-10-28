@@ -16,6 +16,15 @@ namespace Retro.Dialogue
     {
         public const string ShakeLinkId = "shake";
         public const string WaveLinkId = "wave";
+        public const string AngryLinkId = "angry";
+        public const string HappyLinkId = "happy";
+        public const string EmbarrassedLinkId = "embarrassed";
+
+        public static bool HasAnimatedText(string line)
+        {
+            return !string.IsNullOrEmpty(line) && (line.Contains("<shake>") || line.Contains("<wave>")
+                || line.Contains("<angry>") || line.Contains("<happy>") || line.Contains("<embarrassed>"));
+        }
 
         public static readonly Color DefaultEmphasisColor = new Color(0.86f, 0.2f, 0.2f);
 
@@ -30,7 +39,13 @@ namespace Retro.Dialogue
                 .Replace("<shake>", $"<link=\"{ShakeLinkId}\">")
                 .Replace("</shake>", "</link>")
                 .Replace("<wave>", $"<link=\"{WaveLinkId}\">")
-                .Replace("</wave>", "</link>");
+                .Replace("</wave>", "</link>")
+                .Replace("<angry>", $"<link=\"{AngryLinkId}\">")
+                .Replace("</angry>", "</link>")
+                .Replace("<happy>", $"<link=\"{HappyLinkId}\">")
+                .Replace("</happy>", "</link>")
+                .Replace("<embarrassed>", $"<link=\"{EmbarrassedLinkId}\">")
+                .Replace("</embarrassed>", "</link>");
         }
     }
 }
