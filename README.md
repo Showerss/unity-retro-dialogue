@@ -13,6 +13,26 @@ This repo's root is the package root.
 
 Requires Unity 6000.0+, Input System, and uGUI (TextMeshPro).
 
+## 2.5D and 3D compatibility
+
+This module is intended to work in both 2.5D and 3D games through the same dialogue and speech implementation. Camera perspective does not change how `DialogueDefinition`, `DialogueBoxUI`, `Typewriter`, `SpeechVoice` or `SpeechVoicePlayer` work. Reuse the same dialogue assets, voice assets and UI prefab in either view; speech needs no perspective switch.
+
+Keep controller-specific input locking and camera behavior in an `IDialogueHost` adapter:
+
+- **First-person 3D:** use `FpcDialogueHost`, included in this package's optional FirstPersonController adapter.
+- **Top-down / 2.5D:** use a host for that controller. The consuming game's `com.topdown.controller` package supplies `TopDownDialogueHost`; it is not bundled with this dialogue package.
+- **Other controllers:** implement `IDialogueHost` to provide the advance action, key label and player input lock. Keep camera framing in the controller adapter.
+
+When switching perspective, select or configure the appropriate host at the controller integration boundary. Keep speech, text pacing and mood effects shared rather than adding 2.5D/3D branches to the dialogue core.
+
+### Enabling speech in either view
+
+1. Assign a populated `SpeechVoice` to the dialogue asset's **Voice** field. Alternatively, set **Default Voice** on the UI's `Typewriter` as a fallback for dialogue with no voice.
+2. Connect the `Typewriter` to a `SpeechVoicePlayer` with an enabled `AudioSource`. For screen-space dialogue audio, set the source's **Spatial Blend** to **2D** so camera distance does not affect volume.
+3. Supply the clips required by the selected speech mode: A-Z for `Alphabet`, vowel clips for `VowelsOnly`, or blip clips for `SingleBlip`. The scene needs an active audio listener.
+
+If both the dialogue voice and typewriter default voice are empty, the line intentionally types silently. Changing perspective does not assign a voice automatically. A voice also defines pacing and speaker styling, so duplicate and tune it when a character needs a distinct presentation.
+
 ## How the speech works
 
 | Mode | Inspired by | What plays |
